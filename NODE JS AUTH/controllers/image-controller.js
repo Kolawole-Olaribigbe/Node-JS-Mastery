@@ -78,7 +78,7 @@ const deleteImageController = async(req, res)=>{
             });
         }
         //check if image is uploaded by current user trying to delete
-        if (image.uploadedBy.toString) {
+        if (image.uploadedBy.toString !== userId) {
             return res.status(403).json({
                 success: false,
                 message: 'You are not authorized to delete this image'
