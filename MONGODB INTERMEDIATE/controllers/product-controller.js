@@ -1,4 +1,94 @@
+const Products = require('../models/Products');
 const Product = require('../models/Products');
+
+const getProductStats = async(req, res) => {
+    try {
+        const result = await Product.aggregate([
+            //stage 1
+            {
+                $match: {
+                    inStock : true,
+                    price: {
+                        $gte: 100
+                    }
+                }
+            },
+            //stage 2 : group documents
+            {
+                $group: {
+                    _id: "$category",
+                    avgPrice: {
+                        $avg: "$price"
+                    },
+                    count: {
+                        $sum: 1,
+                    }
+                }
+            }
+        ]);
+        res.status(200).json({
+            success : true,
+            data : result
+        });
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({
+            success : false,
+            message : 'Some error occurred'
+        });
+    }
+}
+
+const getProductAnalysis = async(req, res)=> {
+    try {
+        const result = await Product.aggregate([
+            {
+                $match : {
+                    category : 'Electronics'
+                }
+            },
+            {
+                $group: {
+                    _id : null,
+                    totalRevenue : {
+                        $sum: "$price"
+                    },
+                    avgPrice : {
+                        $avg : "$price"
+                    },
+                    maxProductPrice : {
+                        $max : "$price"
+                    },
+                    minProductPrice : {
+                        $min : "$price"
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    totalRevenue: 1,
+                    avgPrice: 1,
+                    maxProductPrice: 1,
+                    minProductPrice: 1,
+                    priceRange: {
+                        $subtract: ["$maxProductPrice", "$minProductPrice"],
+                    },
+                }
+            }
+        ]);
+        res.status(200).json({
+            success: true,
+            data: result
+        })
+    } catch (e) {
+        console.log(e);
+        res.status(500).json({
+            success : false,
+            message : 'Some error occurred'
+        });
+    }
+} 
 
 const insertSampleProducts = async(req, res) => {
     try {
@@ -11,32 +101,32 @@ const insertSampleProducts = async(req, res) => {
                 tags: ["computer", "tech"]
             },
             {
-                name: "Laptop",
+                name: "Smartphone",
                 category: "Electronics",
-                price: 999,
+                price: 699,
                 inStock: true,
-                tags: ["computer", "tech"]
+                tags: ["mobile", "tech"]
             },
             {
-                name: "Laptop",
+                name: "Headphones",
                 category: "Electronics",
-                price: 999,
-                inStock: true,
-                tags: ["computer", "tech"]
+                price: 199,
+                inStock: false,
+                tags: ["audio", "tech"]
             },
             {
-                name: "Laptop",
-                category: "Electronics",
-                price: 999,
+                name: "Running Shoes",
+                category: "Sports",
+                price: 89,
                 inStock: true,
-                tags: ["computer", "tech"]
+                tags: ["footwear", "running"]
             },
             {
-                name: "Laptop",
-                category: "Electronics",
-                price: 999,
+                name: "Novel",
+                category: "Books",
+                price: 15,
                 inStock: true,
-                tags: ["computer", "tech"]
+                tags: ["fiction", "bestseller"]
             }
         ];
         const result = await Product.insertMany(sampleProducts);
@@ -52,4 +142,4 @@ const insertSampleProducts = async(req, res) => {
         });
     }
 }
-module.exports = { insertSampleProducts }
+module.exports = { insertSampleProducts, getProductStats, getProductAnalysis }
