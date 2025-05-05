@@ -4,7 +4,6 @@ const socketIo = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-//const PORT = process.env.PORT
 
 //initiate socket.io and attach it to the http server
 const io = socketIo(server)
@@ -29,7 +28,7 @@ io.on("connection", (socket)=>{
     socket.on('chatMessage', (message) => {
         //broadcast received message to all connected clients
         io.emit("chatMessage", message);
-    })
+    });
     
     //Handles user disconnection
     socket.on("disconnect", () => {
