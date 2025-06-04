@@ -1,69 +1,45 @@
-console.log("Hello Node js from typescript");
+import express, {Express, Request, Response, NextFunction} from 'express';
 
-//basic types
-let isDone : Boolean = false
+const app : Express = express();
+const port = 3000;
 
-let num : number = 200
+app.use(express.json());
 
-let str : string = "Sangam"
-
-let list : number[] = [1,2,3]
-let products : Array<string> = ['product 1', 'product 2', 'product 3']
-
-let randomVal : any = 4
-randomVal = "sangam"
-randomVal = true
-randomVal = []
-
-let xyz : undefined = undefined
-let yz : null = null
-
-enum Color {
-    Red, Green, Blue
+interface CustomRequest extends Request {
+    startTime?: number
 }
 
-let d : Color = Color.Blue
+//middleware -> add startTime property to request
+app.use((req: CustomRequest, res: Response, next: NextFunction)=> {
+    req.startTime = Date.now();
+    next()
+});
 
-//tuple
-let abc : [string, number] = ["hi", 400]
+app.get('/', (req: Request, res: Response) => {
+    res.send("Hello. Typescript with express")
+});
 
-//interfaces, types
-
+//post route -> new user -> name, email
 interface User {
-    name: String;
-    id: number;
-    email?: string//optional
-    readonly createdAt: Date
+    name : string,
+    email : string
 }
 
-const user : User = {
-    name: 'Sangam',
-    id: 1,
-    createdAt: new Date(),
-    email: 'abc@gmail.com'
-}
+app.post('/user', (req: Request<{}, {}, User>, res: Response)=> {
+    const {name, email} = req.body;
+    res.json({
+        message: `User created ${name}-${email}`
+    });
+});
 
-type Product = {
-    title: string;
-    price: number
-}
+//users based on id
+app.get('/users/:id', (req: Request<{id: string}>, res: Response)=> {
+    const {id} = req.params
+    res.json({
+        userId: id
+    });
+});
 
-const product1 : Product = {
-    title: 'Product 1',
-    price : 200
-}
-
-//functions with type annotations
-
-function multiply(a : number, b : number): number {
-    return a * b
-}
-
-const add = (num1 : number, num2 : number): number => {
-    return num1 + num2
-}
-
-function greet(name : string, greeting?: string): string {
-    return `${name} ${greeting}`
-}
-console.log(greet("sangam", "hello"));
+app.listen(port, ()=> {
+    console.log(`Server is now running on port ${port}`);
+});
