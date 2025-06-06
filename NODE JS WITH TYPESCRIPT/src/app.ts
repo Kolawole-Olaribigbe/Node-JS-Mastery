@@ -1,4 +1,5 @@
 import express, {Express, Request, Response, NextFunction} from 'express';
+import { IUser, User } from './models/User';
 
 const app : Express = express();
 const port = 3000;
@@ -18,6 +19,13 @@ app.use((req: CustomRequest, res: Response, next: NextFunction)=> {
 app.get('/', (req: Request, res: Response) => {
     res.send("Hello. Typescript with express")
 });
+app.get('/users', async(req: Request, res: Response) => {
+    try {
+        const user: IUser[] = await User.find()
+    } catch (e) {
+        res.status(400).json({message: "Some error occurred"})
+    }
+})
 
 //post route -> new user -> name, email
 interface User {
